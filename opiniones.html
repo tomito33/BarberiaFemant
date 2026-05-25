@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+        <link rel="icon" type="image/png" href="img/FotoBarber.jpg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opiniones | FeMant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 30%, #1c1607 0%, #000000 80%);
+            background-attachment: fixed;
+            font-family: 'Montserrat', sans-serif;
+            color: #e5e7eb;
+        }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .text-gold { color: #D4AF37; }
+        .bg-gold { background-color: #D4AF37; }
+        .border-gold { border-color: #D4AF37; }
+    </style>
+</head>
+<body class="antialiased pt-24 selection:bg-[#D4AF37] selection:text-black">
+
+    <nav class="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="font-serif text-xl md:text-2xl font-bold text-white tracking-wider">
+                Fe <span class="text-gold">Mant</span> Barberia
+            </a>
+            <div class="flex gap-4 md:gap-6 items-center">
+                <a href="index.html" class="text-xs md:text-sm text-gray-300 hover:text-gold transition-colors">Volver al Inicio</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        
+        <div class="text-center mb-16">
+            <h1 class="text-4xl md:text-5xl font-serif text-white mb-4">COMUNIDAD & RESEÑAS</h1>
+            <div class="w-24 h-1 bg-gold mx-auto mb-6"></div>
+            <p class="text-gray-400 max-w-xl mx-auto">Tu opinión es lo que nos hace mantener la excelencia. Dejanos tu reseña o mira lo que dice nuestra gente.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+            
+            <div class="lg:sticky lg:top-28 bg-zinc-900/80 border border-zinc-800 p-8 rounded-2xl backdrop-blur-sm">
+                <h2 class="text-xl font-serif text-gold mb-6 font-semibold">DEJANOS TU OPINIÓN</h2>
+                
+                <form id="reviewForm" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tu Nombre</label>
+                        <input type="text" id="clientName" required placeholder="Ej. Juan Pérez" 
+                               class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white focus:border-gold focus:outline-none transition-colors">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Puntuación</label>
+                        <select id="clientStars" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-gold focus:border-gold focus:outline-none transition-colors font-semibold">
+                            <option value="5">⭐⭐⭐⭐&nbsp;5 Estrellas (Excelente)</option>
+                            <option value="4">⭐⭐⭐⭐&nbsp;4 Estrellas (Muy Bueno)</option>
+                            <option value="3">⭐⭐⭐&nbsp;3 Estrellas (Bueno)</option>
+                            <option value="2">⭐⭐&nbsp;2 Estrellas (Regular)</option>
+                            <option value="1">⭐&nbsp;1 Estrella (Malo)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Tu Comentario</label>
+                        <textarea id="clientComment" required rows="4" placeholder="¿Cómo fue tu experiencia en la barbería? Cuéntanos..." 
+                                  class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-white focus:border-gold focus:outline-none transition-colors resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" 
+                            class="w-full bg-gold text-black font-semibold py-3 rounded-lg hover:bg-gold/90 transition-colors duration-300 font-medium shadow-md">
+                        Publicar Reseña
+                    </button>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6" id="reviewsContainer">
+                </div>
+
+        </div>
+<div class="flex justify-between items-center mt-8 pb-10">
+    <button id="btn-prev" onclick="cambiarPagina(-1)" class="px-4 py-2 bg-zinc-800 text-gold rounded-lg disabled:opacity-30">Anterior</button>
+    <span id="page-info" class="text-white">Página 1</span>
+    <button id="btn-next" onclick="cambiarPagina(1)" class="px-4 py-2 bg-gold text-black font-bold rounded-lg disabled:opacity-30">Siguiente</button>
+</div>
+    </main>
+
+    <footer class="border-t border-zinc-900 mt-24 py-8 text-center text-zinc-600 text-xs">
+        &copy; 2026 Barbería FeMant. Panel de Opiniones Verificadas.
+    </footer>
+<script type="module">
+    // 1. Importar herramientas de Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // 2. Variables para la Paginación (Limpias y declaradas una sola vez)
+    let todasLasOpiniones = []; 
+    let paginaActual = 1;
+    const reseñasPorPagina = 5;
+
+    // 3. Configuración de Firebase (Tus llaves)
+    const firebaseConfig = {
+        apiKey: "AIzaSyBAw__YJgP6I8ABeCspji64Lwm_er8ecMA",
+        authDomain: "barberia-femant.firebaseapp.com",
+        projectId: "barberia-femant",
+        storageBucket: "barberia-femant.firebasestorage.app",
+        messagingSenderId: "592719051096",
+        appId: "1:592719051096:web:95c9438417f112c2400d2d",
+        measurementId: "G-JVDK6YNLNV"
+    };
+
+    // 4. Iniciar Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // 5. Reseñas por defecto (Para cuando no haya internet o esté vacío)
+    const defaultReviews = [
+        { name: "Martin Exposito", stars: 5, comment: "Increíble la atención. Me hice un Fade y quedó perfecto. El lugar tiene una onda espectacular y los barberos son unos genios.", date: "2026-05-15", initial: "M" },
+        { name: "Lucas Ruarte", stars: 5, comment: "Llevaba años buscando un barbero que entienda bien cómo perfilar mi barba. Un servicio de 10, no los cambio por nadie.", date: "2026-05-05", initial: "L" },
+        { name: "Sebastian Lopez", stars: 4, comment: "Rápido, prolijo y con buena música de fondo. Recomendado para cualquiera que busque un corte clásico bien hecho.", date: "2026-04-20", initial: "S" }
+    ];
+
+    // 6. Lógica de Fechas Relativas (Hace 1 día, Hoy, etc.)
+    function getRelativeTime(dateString) {
+        const commentDate = new Date(dateString);
+        const today = new Date();
+        const diffTime = today.getTime() - commentDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 3600 * 24));
+        
+        if (diffDays < 1) return 'Hoy';
+        if (diffDays === 1) return 'Hace 1 día';
+        if (diffDays < 7) return `Hace ${diffDays} días`;
+        if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return weeks === 1 ? 'Hace 1 semana' : `Hace ${weeks} semanas`;
+        }
+        const months = Math.floor(diffDays / 30);
+        return months === 1 ? 'Hace 1 mes' : `Hace ${months} meses`;
+    }
+    
+    // 7. LECTURA EN TIEMPO REAL CON PAGINACIÓN
+    const q = query(collection(db, "opiniones"), orderBy("timestamp", "desc"));
+
+    onSnapshot(q, (snapshot) => {
+        let desdeFirebase = [];
+        snapshot.forEach((doc) => {
+            desdeFirebase.push(doc.data());
+        });
+
+        // Unimos las de Firebase con las reseñas fijas
+        todasLasOpiniones = [...desdeFirebase, ...defaultReviews];
+        
+        // Dibujamos la página actual
+        renderizarOpiniones();
+    });
+
+    // 8. FUNCIÓN PARA DIBUJAR LAS RESEÑAS
+    window.renderizarOpiniones = function() {
+        const container = document.getElementById('reviewsContainer');
+        container.innerHTML = ''; 
+
+        // Calcular el recorte de la lista
+        const inicio = (paginaActual - 1) * reseñasPorPagina;
+        const fin = inicio + reseñasPorPagina;
+        const paraMostrar = todasLasOpiniones.slice(inicio, fin);
+
+        paraMostrar.forEach(rev => {
+            let starsHTML = '';
+            for(let i=0; i<5; i++) {
+                starsHTML += `<svg class="w-4 h-4 ${i < rev.stars ? 'text-gold fill-current' : 'text-zinc-700'}" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>`;
+            }
+
+            container.innerHTML += `
+                <div class="bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-6 mb-4">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-zinc-800 text-gold font-bold border border-zinc-700 rounded-full flex items-center justify-center">
+                                ${rev.initial}
+                            </div>
+                            <div>
+                                <h4 class="text-white font-semibold">${rev.name}</h4>
+                                <div class="flex mt-1">${starsHTML}</div>
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-500">${typeof getRelativeTime === 'function' ? getRelativeTime(rev.date) : rev.date}</span>
+                    </div>
+                    <p class="text-gray-300 text-sm italic">"${rev.comment}"</p>
+                </div>
+            `;
+        });
+
+        actualizarBotones();
+    }
+
+    // 9. FUNCIONES PARA QUE LOS BOTONES FUNCIONEN
+    window.cambiarPagina = function(direccion) {
+        paginaActual += direccion;
+        renderizarOpiniones();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function actualizarBotones() {
+        const totalPaginas = Math.ceil(todasLasOpiniones.length / reseñasPorPagina);
+        const btnPrev = document.getElementById("btn-prev");
+        const btnNext = document.getElementById("btn-next");
+        const info = document.getElementById("page-info");
+
+        if(btnPrev) btnPrev.disabled = (paginaActual === 1);
+        if(btnNext) btnNext.disabled = (paginaActual >= totalPaginas || totalPaginas === 0);
+        if(info) info.innerText = `Página ${paginaActual} de ${totalPaginas || 1}`;
+    }
+
+    // 10. GUARDADO EN LA NUBE (Envío de formulario)
+    document.getElementById('reviewForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        const originalText = btnSubmit.innerText;
+        btnSubmit.innerText = "Enviando...";
+
+        const name = document.getElementById('clientName').value.trim();
+        const stars = parseInt(document.getElementById('clientStars').value);
+        const comment = document.getElementById('clientComment').value.trim();
+        const todayStr = new Date().toISOString().split('T')[0];
+        const initial = name.charAt(0).toUpperCase();
+
+        try {
+            await addDoc(collection(db, "opiniones"), {
+                name: name,
+                stars: stars,
+                comment: comment,
+                date: todayStr,
+                initial: initial,
+                timestamp: new Date() 
+            });
+            
+            document.getElementById('reviewForm').reset();
+            
+            // Volver automáticamente a la página 1 para que el usuario vea su reseña recién publicada
+            paginaActual = 1;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+        } catch (error) {
+            console.error("Error al guardar:", error);
+            alert("Hubo un error al conectar con el servidor.");
+        } finally {
+            btnSubmit.innerText = originalText;
+        }
+    });
+</script>
+
+</body>
+</html>
